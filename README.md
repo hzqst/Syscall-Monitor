@@ -5,6 +5,13 @@ Introduction
 -------------
 This is a process monitoring tool (like Sysinternal's Process Monitor) implemented with Intel VT-X/EPT for Windows 7+.
 
+Develop Environment
+-------------
+Visual Studio 2015 update 3
+Windows SDK 10
+Windows Driver Kit 10
+QT5.7 for MSVC
+
 Deployment
 -------------
 - QT GUI project: SyscallMonQT/SyscallMonQT.pro
@@ -23,6 +30,7 @@ Reference & Thanks
 - BOOST http://www.boost.org/
 - QT https://www.qt.io/
 - HyperPlatform https://github.com/tandasat/HyperPlatform
+- Capstone http://www.capstone-engine.org/
 
 TODO
 --------------------

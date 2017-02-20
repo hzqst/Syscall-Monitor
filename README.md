@@ -23,3 +23,18 @@ Reference & Thanks
 - BOOST http://www.boost.org/
 - QT https://www.qt.io/
 - HyperPlatform https://github.com/tandasat/HyperPlatform
+
+TODO
+--------------------
+1.Optimize the memory usage issue.
+
+Screenshots
+--------------------
+![load symbol](https://github.com/hzqst/Syscall-Monitor/blob/master/snaps/1.png?raw=true)
+![main frame](https://github.com/hzqst/Syscall-Monitor/blob/master/snaps/2.png?raw=true)
+![process view](https://github.com/hzqst/Syscall-Monitor/blob/master/snaps/3.png?raw=true)
+![event info](https://github.com/hzqst/Syscall-Monitor/blob/master/snaps/4.png?raw=true)
+![event filter](https://github.com/hzqst/Syscall-Monitor/blob/master/snaps/5.png?raw=true)
+![filtered](https://github.com/hzqst/Syscall-Monitor/blob/master/snaps/6.png?raw=true)
+![filterable attributes](https://github.com/hzqst/Syscall-Monitor/blob/master/snaps/7.png?raw=true)
+![process info](https://github.com/hzqst/Syscall-Monitor/blob/master/snaps/8.png?raw=true)

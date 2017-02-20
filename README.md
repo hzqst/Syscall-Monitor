@@ -7,10 +7,10 @@ This is a process monitoring tool (like Sysinternal's Process Monitor) implement
 
 Develop Environment
 -------------
-Visual Studio 2015 update 3
-Windows SDK 10
-Windows Driver Kit 10
-QT5.7 for MSVC
+- Visual Studio 2015 update 3
+- Windows SDK 10
+- Windows Driver Kit 10
+- QT5.7 for MSVC
 
 Deployment
 -------------

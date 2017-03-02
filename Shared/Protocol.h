@@ -9,6 +9,7 @@ enum cls_protocol
 	cls_get_image_baseinfo,
 	cls_get_process_path,
 	cls_get_process_cmdline,
+	cls_get_process_curdir,
 	cls_get_process_baseinfo,
 };
 
@@ -22,11 +23,15 @@ enum svc_protocol
 	svc_nt_load_driver,
 	svc_nt_query_systeminfo,
 	svc_nt_open_process,
+	svc_nt_open_thread,
 	svc_nt_terminate_process,
 	svc_nt_alloc_virtual_mem,
 	svc_nt_readwrite_virtual_mem,
 	svc_nt_protect_virtual_mem,
 	svc_nt_query_virtual_mem,
+	svc_nt_createopen_mutant,
+	svc_nt_createopen_dirobj,
+	svc_nt_query_dirobj,
 	svc_nt_setwindowshook,
 	svc_nt_findwindow,
 	svc_nt_getwindowtext,
@@ -39,7 +44,8 @@ enum svc_protocol
 	svc_reg_createopenkey,
 	svc_reg_setvaluekey,
 	svc_reg_queryvaluekey,
-	svc_reg_querykey
+	svc_reg_querykey,
+	svc_maximum
 };
 
 #define MAX_STACK_DEPTH 64
@@ -103,6 +109,11 @@ typedef struct
 	ULONG SessionId;
 }cls_get_process_baseinfo_data;
 
+typedef struct
+{
+	WCHAR ImagePath[260];
+}cls_get_process_imagepath_data;
+
 //svc
 
 typedef struct
@@ -130,6 +141,7 @@ typedef struct
 	ULONG SessionId;
 	WCHAR ImagePath[260];
 	WCHAR CommandLine[256];
+	WCHAR CurDirectory[256];
 }svc_ps_create_process_data;
 
 typedef union
@@ -206,6 +218,20 @@ typedef struct
 	ULONG DesiredAccess;
 	ULONG ResultStatus;
 }svc_nt_open_process_data;
+
+typedef struct
+{
+	UCHAR protocol;
+	ULONG size;
+	ULONG64 time;
+	ULONG64 eventId;
+	ULONG ProcessId;
+	ULONG ThreadId;
+	ULONG TargetProcessId;
+	ULONG TargetThreadId;
+	ULONG DesiredAccess;
+	ULONG ResultStatus;
+}svc_nt_open_thread_data;
 
 typedef struct
 {
@@ -298,6 +324,47 @@ typedef struct
 	WCHAR RegisterPath[260];
 	WCHAR ImagePath[260];
 }svc_nt_load_driver_data;
+
+typedef struct
+{
+	UCHAR protocol;
+	ULONG size;
+	ULONG64 time;
+	ULONG64 eventId;
+	ULONG ProcessId;
+	ULONG ThreadId;
+	BOOLEAN IsOpen;
+	BOOLEAN InitialOwner;
+	ULONG DesiredAccess;
+	ULONG ResultStatus;
+	WCHAR MutexName[256];
+}svc_nt_createopen_mutant_data;
+
+typedef struct
+{
+	UCHAR protocol;
+	ULONG size;
+	ULONG64 time;
+	ULONG64 eventId;
+	ULONG ProcessId;
+	ULONG ThreadId;
+	BOOLEAN IsOpen;
+	ULONG DesiredAccess;
+	ULONG ResultStatus;
+	WCHAR ObjectName[256];
+}svc_nt_createopen_dirobj_data;
+
+typedef struct
+{
+	UCHAR protocol;
+	ULONG size;
+	ULONG64 time;
+	ULONG64 eventId;
+	ULONG ProcessId;
+	ULONG ThreadId;
+	ULONG ResultStatus;
+	WCHAR ObjectName[256];
+}svc_nt_query_dirobj_data;
 
 typedef struct
 {

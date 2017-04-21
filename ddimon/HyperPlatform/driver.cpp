@@ -53,7 +53,7 @@ bool DriverpIsSuppoetedOS();
 NTSTATUS DriverEntryFilter(__in PDRIVER_OBJECT DriverObject, __in PUNICODE_STRING RegistryPath);
 NTSTATUS InitDynamicData(IN OUT PDYNAMIC_DATA pData);
 VOID CmInitialization(PDRIVER_OBJECT pDriverObject);
-VOID PsInitialization(VOID);
+VOID PsInitialization(PDRIVER_OBJECT pDriverObject);
 VOID InitDynVers(VOID);
 
 #if defined(ALLOC_PRAGMA)
@@ -141,16 +141,18 @@ _Use_decl_annotations_ NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object,
 
   // Virtualize all processors
 
-  status = VmInitialization();
-  //Allow VmInitialization to fail
-  /*if (!NT_SUCCESS(status)) {
-    PowerCallbackTermination();
-    UtilTermination();
-    PerfTermination();
-    LogTermination();
-	FreeDynVers();
-    return status;
-  }*/
+  if (dynData.EnableVmx) 
+  {
+	  status = VmInitialization();
+	  if (!NT_SUCCESS(status)) {
+		  PowerCallbackTermination();
+		  UtilTermination();
+		  PerfTermination();
+		  LogTermination();
+		  FreeDynVers();
+		  return status;
+	  }
+  }
 
   // Register re-initialization for the log functions if needed
   if (need_reinitialization) {
@@ -158,7 +160,7 @@ _Use_decl_annotations_ NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object,
   }
 
   CmInitialization(driver_object);
-  PsInitialization();
+  PsInitialization(driver_object);
 
   DriverEntryFilter(driver_object, registry_path);
  

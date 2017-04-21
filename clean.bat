@@ -24,6 +24,8 @@ rmdir /s /q DdiMon\HyperPlatform\Debug
 
 rmdir /s /q DdiMon\HyperPlatform\Release
 
+rmdir /s /q ddimon\capstone\msvc\capstone_static\Release_WDK
+rmdir /s /q ddimon\capstone\msvc\capstone_static\x64
 rmdir /s /q doxygen
 
 

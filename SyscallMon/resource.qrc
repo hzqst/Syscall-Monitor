@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>SyscallMon.ico</file>
+    </qresource>
+</RCC>

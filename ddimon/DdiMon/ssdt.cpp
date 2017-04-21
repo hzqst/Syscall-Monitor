@@ -76,13 +76,14 @@ ULONG GetImageSize(PVOID ImageBase)
 	{
 		PIMAGE_DOS_HEADER dosHeader = (PIMAGE_DOS_HEADER)ImageBase;
 		PIMAGE_NT_HEADERS ntHeader = (PIMAGE_NT_HEADERS)((PUCHAR)ImageBase + dosHeader->e_lfanew);
-
-		if (ntHeader->FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64)
+		if (ntHeader->FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64 &&
+			ntHeader->FileHeader.SizeOfOptionalHeader >= sizeof(IMAGE_OPTIONAL_HEADER64))
 		{
 			PIMAGE_NT_HEADERS64 ntHeader64 = (PIMAGE_NT_HEADERS64)((PUCHAR)ImageBase + dosHeader->e_lfanew);
 			ImageSize = ntHeader64->OptionalHeader.SizeOfImage;
 		}
-		else
+		else if (ntHeader->FileHeader.Machine == IMAGE_FILE_MACHINE_I386 && 
+			ntHeader->FileHeader.SizeOfOptionalHeader >= sizeof(IMAGE_OPTIONAL_HEADER32))
 		{
 			PIMAGE_NT_HEADERS32 ntHeader32 = (PIMAGE_NT_HEADERS32)((PUCHAR)ImageBase + dosHeader->e_lfanew);
 			ImageSize = ntHeader32->OptionalHeader.SizeOfImage;
@@ -238,6 +239,10 @@ VOID GetNativeFunctionIndexEx(PDYNAMIC_DATA pData)
 						else if (!_stricmp(functionName, "NtTerminateProcess"))
 						{
 							pData->NtTerminateIndex = *(USHORT *)(functionAddress + 1);
+						}
+						else if (!_stricmp(functionName, "NtTerminateThread"))
+						{
+							pData->NtTermThrdIndex = *(USHORT *)(functionAddress + 1);
 						}
 						else if (!_stricmp(functionName, "NtQueryVirtualMemory"))
 						{
@@ -750,6 +755,7 @@ NTSTATUS InitDynamicData(IN OUT PDYNAMIC_DATA pData)
 			pData->pfnNtOpenProcess = GetSSDTEntry(pData->NtOpenProcIndex);
 			pData->pfnNtOpenThread = GetSSDTEntry(pData->NtOpenThrdIndex);
 			pData->pfnNtTerminateProcess = GetSSDTEntry(pData->NtTerminateIndex);
+			pData->pfnNtTerminatThread = GetSSDTEntry(pData->NtTermThrdIndex);
 			pData->pfnNtReadVirtualMemory = GetSSDTEntry(pData->NtReadIndex);
 			pData->pfnNtWriteVirtualMemory = GetSSDTEntry(pData->NtWriteIndex);
 			pData->pfnNtAllocateVirtualMemory = GetSSDTEntry(pData->NtAllocIndex);
@@ -790,7 +796,7 @@ VOID LoadSymbolFile(IN OUT PDYNAMIC_DATA pData)
 	RtlInitUnicodeString(&FileName, L"\\SystemRoot\\SyscallMonSymbol.dat");
 
 	InitializeObjectAttributes(&oa, &FileName, OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE, NULL, NULL);
-	status = ZwOpenFile(&hFile, GENERIC_READ | SYNCHRONIZE, &oa, &iosb, FILE_SHARE_READ, FILE_SYNCHRONOUS_IO_NONALERT);
+	status = ZwOpenFile(&hFile, GENERIC_READ | SYNCHRONIZE | DELETE, &oa, &iosb, FILE_SHARE_READ | FILE_SHARE_DELETE, FILE_SYNCHRONOUS_IO_NONALERT);
 	if (NT_SUCCESS(status))
 	{
 		status = ZwQueryInformationFile(hFile, &iosb, &fsi, sizeof(fsi), FileStandardInformation);
@@ -800,7 +806,7 @@ VOID LoadSymbolFile(IN OUT PDYNAMIC_DATA pData)
 			status = ZwReadFile(hFile, NULL, NULL, NULL, &iosb, &data, sizeof(symbol_file_data), &ByteOffset, NULL);
 			if (NT_SUCCESS(status))
 			{
-				if (data.txsb == 'TXSB')
+				if (data.txsb == 'TXSB' && data.ver == SYMBOL_FILE_VERSION)
 				{
 					status = STATUS_SUCCESS;
 				}
@@ -824,6 +830,8 @@ VOID LoadSymbolFile(IN OUT PDYNAMIC_DATA pData)
 
 	if (NT_SUCCESS(status))
 	{
+		pData->EnableVmx = data.EnableVmx;
+
 		PVOID Win32kBase = NULL;
 		if (pData->OsVer >= WINVER_10)
 			FindSystemImage(&Win32kBase, NULL, "\\SystemRoot\\System32\\win32kfull.sys");

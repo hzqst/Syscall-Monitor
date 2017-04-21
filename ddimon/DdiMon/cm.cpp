@@ -518,7 +518,9 @@ NTSTATUS RegistryCallbackRoutine(
 
 VOID CmInitialization(PDRIVER_OBJECT pDriverObject)
 {
-	UNICODE_STRING ustrRoutine;
+	PAGED_CODE();
+
+	/*UNICODE_STRING ustrRoutine;
 	RtlInitUnicodeString(&ustrRoutine, L"CmRegisterCallbackEx");
 	const auto pfnCmRegisterCallbackEx =
 		(NTSTATUS(*)(PEX_CALLBACK_FUNCTION, PCUNICODE_STRING, PVOID, PVOID, PLARGE_INTEGER, PVOID))MmGetSystemRoutineAddress(&ustrRoutine);
@@ -541,7 +543,7 @@ VOID CmInitialization(PDRIVER_OBJECT pDriverObject)
 	if (m_pfnCmCallbackGetKeyObjectID != NULL)
 		m_pfnGetRegistryObjectName = GetRegistryObjectNameVista;
 	else
-		m_pfnGetRegistryObjectName = GetRegistryObjectNameXP;
+		m_pfnGetRegistryObjectName = GetRegistryObjectNameXP;*/
 }
 
 VOID CmTermination(VOID)

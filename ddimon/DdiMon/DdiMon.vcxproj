@@ -29,6 +29,7 @@
     <Configuration>Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">Win32</Platform>
     <RootNamespace>DdiMon</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -102,7 +103,7 @@
       <AdditionalDependencies>$(OutDir)..\$(ConfigurationName)_WDK\capstone.lib;ntstrsafe.lib;fltmgr.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(OutDir)$(TargetName)$(TargetExt) ..\..\build32\SyscallMon32.sys</Command>
+      <Command>copy $(OutDir)$(TargetName)$(TargetExt) ..\..\bin32\SyscallMon32.sys</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -117,7 +118,7 @@
       <AdditionalDependencies>$(OutDir)..\$(ConfigurationName)_WDK\capstone.lib;ntstrsafe.lib;fltmgr.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(OutDir)$(TargetName)$(TargetExt) ..\..\build32\SyscallMon32.sys</Command>
+      <Command>copy $(OutDir)$(TargetName)$(TargetExt) "..\..\bin32\SyscallMon32.sys"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -132,7 +133,7 @@
       <AdditionalDependencies>$(OutDir)..\$(ConfigurationName)_WDK\capstone.lib;ntstrsafe.lib;fltmgr.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(OutDir)$(TargetName)$(TargetExt) ..\..\build64\SyscallMon64.sys</Command>
+      <Command>copy $(OutDir)$(TargetName)$(TargetExt) ..\..\bin64\SyscallMon64.sys</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -142,12 +143,13 @@
       <WppKernelMode>true</WppKernelMode>
       <AdditionalIncludeDirectories>..\capstone\include;$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>false</TreatWarningAsError>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>$(OutDir)..\$(ConfigurationName)_WDK\capstone.lib;ntstrsafe.lib;fltmgr.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(OutDir)$(TargetName)$(TargetExt) ..\..\build64\SyscallMon64.sys</Command>
+      <Command>copy $(OutDir)$(TargetName)$(TargetExt) "..\..\bin64\SyscallMon64.sys"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

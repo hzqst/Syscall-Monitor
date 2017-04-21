@@ -249,6 +249,9 @@ NTSTATUS RtlDeviceNameToDosName(
 			DeviceName->Buffer = NtFileName->Buffer;
 			DeviceName->Length = linkTarget.Length;
 			DeviceName->MaximumLength = linkTarget.Length;
+			DosName->Length = 4;
+			DosName->Buffer[0] = c;
+			DosName->Buffer[1] = L':';
 			bFound = TRUE;
 
 			ExFreePoolWithTag(linkTarget.Buffer, 'TXSB');
@@ -258,16 +261,7 @@ NTSTATUS RtlDeviceNameToDosName(
 		ExFreePoolWithTag(linkTarget.Buffer, 'TXSB');
 	}
 
-	if (bFound)
-	{
-		DosName->Length = 4;
-		DosName->Buffer[0] = c;
-		DosName->Buffer[1] = L':';
-
-		return STATUS_SUCCESS;
-	}
-
-	return STATUS_OBJECT_NAME_NOT_FOUND;
+	return (bFound) ? STATUS_SUCCESS: STATUS_OBJECT_NAME_NOT_FOUND;
 }
 
 //PASSIVE_LEVEL

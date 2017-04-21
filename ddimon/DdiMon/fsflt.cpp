@@ -111,7 +111,7 @@ NTSTATUS FLTAPI FsConnectNotifyCallback(IN PFLT_PORT ClientPort, IN PVOID Server
 	if (SizeOfContext == sizeof(conn_context_data))
 	{
 		conn_context_data *data = (conn_context_data *)ConnectionContext;
-		if (data->txsb == 'TXSB' && data->ver == 1)
+		if (data->txsb == 'TXSB' && data->ver == SYMBOL_FILE_VERSION)
 		{
 			m_pClientPort = ClientPort;
 			m_SyscallMonPID = PsGetCurrentProcessId();

@@ -108,6 +108,7 @@ typedef struct _DYNAMIC_DATA
 	ULONG NtWriteIndex;     // NtWriteVirtualMemory SSDT index
 	ULONG NtReadIndex;      // NtReadVirtualMemory SSDT index
 	ULONG NtTerminateIndex;      // NtTerminateProcess SSDT index
+	ULONG NtTermThrdIndex;      // NtTerminatThread SSDT index
 	ULONG NtOpenProcIndex;      // NtOpenProcess SSDT index
 	ULONG NtOpenThrdIndex;      // NtOpenThread SSDT index
 	ULONG NtLoadDrvIndex;      // NtLoadDriver SSDT index
@@ -120,6 +121,7 @@ typedef struct _DYNAMIC_DATA
 	PVOID pfnKiCallSystemServicePerf;
 	PVOID pfnNtQuerySystemInformation;
 	PVOID pfnNtTerminateProcess;
+	PVOID pfnNtTerminatThread;
 	PVOID pfnNtOpenProcess;
 	PVOID pfnNtOpenThread;
 	PVOID pfnNtAllocateVirtualMemory;
@@ -138,6 +140,7 @@ typedef struct _DYNAMIC_DATA
 	PVOID pfnNtUserFindWindowEx;
 	PVOID pfnNtUserInternalGetWindowText;
 	PVOID pfnNtUserGetClassName;
+	BOOLEAN EnableVmx;
 } DYNAMIC_DATA, *PDYNAMIC_DATA;
 
 #define SYSCALLMON_TOLLEVEL_IRP ((PIRP)4396)

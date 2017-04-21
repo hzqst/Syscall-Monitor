@@ -820,7 +820,7 @@ _Use_decl_annotations_ static void VmmpHandleLdtrOrTrAccess(
 }
 
 // MOV to / from DRx
-#if 0
+#if 1
 _Use_decl_annotations_ static void VmmpHandleDrAccess(
 	GuestContext *guest_context) {
 	HYPERPLATFORM_PERFORMANCE_MEASURE_THIS_SCOPE();
@@ -930,7 +930,8 @@ _Use_decl_annotations_ static void VmmpHandleDrAccess(
 
 	VmmpAdjustGuestInstructionPointer(guest_context);
 }
-#endif
+
+# else
 
 // MOV to / from DRx
 _Use_decl_annotations_ static void VmmpHandleDrAccess(
@@ -981,6 +982,8 @@ _Use_decl_annotations_ static void VmmpHandleDrAccess(
 
 	VmmpAdjustGuestInstructionPointer(guest_context);
 }
+
+#endif
 
 // IN, INS, OUT, OUTS
 _Use_decl_annotations_ static void VmmpHandleIoPort(

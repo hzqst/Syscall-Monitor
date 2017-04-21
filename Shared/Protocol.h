@@ -52,9 +52,13 @@ enum svc_protocol
 
 #pragma pack(1)
 
+#define SYMBOL_FILE_VERSION 1
+
 typedef struct
 {
 	ULONG txsb;
+        UCHAR ver;
+        BOOLEAN EnableVmx;
 	ULONG NtUserSetWindowsHookExOffset;
 	ULONG NtUserSetWindowsHookAWOffset;
 	ULONG NtUserFindWindowExOffset;

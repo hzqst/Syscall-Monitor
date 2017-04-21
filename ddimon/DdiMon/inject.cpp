@@ -16,7 +16,7 @@ UNICODE_STRING m_GlobalInject64 = { 0 };
 #endif
 
 extern DYNAMIC_DATA dynData;
-
+typedef NTSTATUS(*fnNtTerminateThread)(HANDLE ProcessHandle, NTSTATUS ExitStatus);
 typedef NTSTATUS(*fnNtProtectVirtualMemory)(HANDLE ProcessHandle, PVOID* BaseAddress, SIZE_T* NumberOfBytesToProtect, ULONG NewAccessProtection, PULONG OldAccessProtection);
 typedef NTSTATUS(*fnNtWriteVirtualMemory)(HANDLE ProcessHandle, PVOID BaseAddress, PVOID Buffer, ULONG BufferLength, PULONG ReturnLength);
 typedef NTSTATUS(*fnNtReadVirtualMemory)(HANDLE ProcessHandle, PVOID BaseAddress, PVOID Buffer, ULONG BufferLength, PULONG ReturnLength);
@@ -64,6 +64,31 @@ PVOID GetModuleExport(IN PVOID pBase, IN PCCHAR name_ord);
 #pragma alloc_text(PAGE, GetInlineHookCode)
 #pragma alloc_text(PAGE, GetInlineHookCode64)
 #pragma alloc_text(PAGE, GetModuleExport)
+
+NTSTATUS NTAPI NewZwTerminateThread(_In_opt_ HANDLE ThreadHandle, _In_ NTSTATUS ExitStatus)
+{
+	NTSTATUS status = STATUS_SUCCESS;
+	fnNtTerminateThread pfnNtTerminateThread;
+
+	if (dynData.NtTermThrdIndex == 0)
+		return STATUS_NOT_FOUND;
+
+	pfnNtTerminateThread = (fnNtTerminateThread)(ULONG_PTR)GetSSDTEntry(dynData.NtTermThrdIndex);
+	if (pfnNtTerminateThread)
+	{
+		PUCHAR pPrevMode = (PUCHAR)PsGetCurrentThread() + dynData.PrevMode;
+		UCHAR prevMode = *pPrevMode;
+		*pPrevMode = KernelMode;
+
+		status = pfnNtTerminateThread(ThreadHandle, ExitStatus);
+
+		*pPrevMode = prevMode;
+	}
+	else
+		status = STATUS_NOT_FOUND;
+
+	return status;
+}
 
 NTSTATUS NTAPI NewZwQueryVirtualMemory(HANDLE ProcessHandle, PVOID BaseAddress, MEMORY_INFORMATION_CLASS_EX MemoryInformationClass, PVOID MemoryInformation, SIZE_T MemoryInformationLength, PSIZE_T ReturnLength)
 {

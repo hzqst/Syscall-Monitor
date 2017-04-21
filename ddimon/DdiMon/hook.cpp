@@ -47,6 +47,8 @@ PVOID CreateCallStackEvent(ULONG64 EventId);
 
 ULONG_PTR m_CsrssCR3 = NULL;
 
+NTKERNELAPI PCHAR NTAPI PsGetProcessImageFileName(PEPROCESS Process);
+
 volatile LONG m_HookLock;
 
 }
@@ -177,12 +179,12 @@ NTSTATUS NTAPI NewNtOpenProcess(
 {
 	InterlockedIncrement(&m_HookLock);
 
+	svc_nt_open_process_data *data = NULL;
+	ULONG64 EventId = 0;
 	BOOLEAN ValidProcessId = FALSE;
 	CLIENT_ID CapturedCid = {0};
 
 	const auto original = (NTSTATUS(NTAPI *)(PHANDLE, ACCESS_MASK, POBJECT_ATTRIBUTES, PCLIENT_ID))m_NtOpenProcessHookTarget.original_call;
-
-	NTSTATUS status = original(ProcessHandle, DesiredAccess, ObjectAttributes, ClientId);
 
 	if (m_EventList->IsCapturing())
 	{
@@ -200,10 +202,10 @@ NTSTATUS NTAPI NewNtOpenProcess(
 		}
 		if (ValidProcessId)
 		{
-			ULONG64 EventId = m_EventList->GetEventId();
+			EventId = m_EventList->GetEventId();
 			if (EventId)
 			{
-				svc_nt_open_process_data *data = (svc_nt_open_process_data *)
+				data = (svc_nt_open_process_data *)
 					ExAllocatePoolWithTag(PagedPool, sizeof(svc_nt_open_process_data), 'TXSB');
 
 				if (data)
@@ -217,16 +219,43 @@ NTSTATUS NTAPI NewNtOpenProcess(
 					data->ThreadId = (ULONG)PsGetCurrentThreadId();
 					data->TargetProcessId = (ULONG)CapturedCid.UniqueProcess;
 					data->DesiredAccess = (ULONG)DesiredAccess;
-					data->ResultStatus = (ULONG)status;
-
-					m_EventList->Lock();
-					m_EventList->SendEvent(data);
-					m_EventList->SendEvent(CreateCallStackEvent(EventId));
-					m_EventList->Unlock();
-					m_EventList->NotifyEvent();
 				}
 			}
 		}
+	}
+
+	NTSTATUS status = STATUS_SUCCESS;
+	
+	if (ValidProcessId)
+	{
+		PEPROCESS ProcessObj = NULL;
+		if (NT_SUCCESS(PsLookupProcessByProcessId(CapturedCid.UniqueProcess, &ProcessObj))) 
+		{
+			if (!_stricmp(PsGetProcessImageFileName(ProcessObj), "Xubei.exe")) {
+				PEPROCESS CurrentProcessObj = NULL;
+				if (NT_SUCCESS(PsLookupProcessByProcessId(PsGetCurrentProcessId(), &CurrentProcessObj)))
+				{
+					if (!_stricmp(PsGetProcessImageFileName(CurrentProcessObj), "crossfire.exe"))
+						status = STATUS_ACCESS_DENIED;
+
+					ObfDereferenceObject(CurrentProcessObj);
+				}
+			}
+			ObfDereferenceObject(ProcessObj);
+		}
+	}
+
+	if(status == STATUS_SUCCESS)
+		status = original(ProcessHandle, DesiredAccess, ObjectAttributes, ClientId);
+
+	if (data) {
+		data->ResultStatus = (ULONG)status;
+
+		m_EventList->Lock();
+		m_EventList->SendEvent(data);
+		m_EventList->SendEvent(CreateCallStackEvent(EventId));
+		m_EventList->Unlock();
+		m_EventList->NotifyEvent();
 	}
 
 	InterlockedDecrement(&m_HookLock);

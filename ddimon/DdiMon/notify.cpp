@@ -42,7 +42,7 @@ fnObGetFilterVersion m_pfnObGetFilterVersion = NULL;
 PVOID m_ProcessObCallbackHandle = NULL;
 PVOID m_ThreadObCallbackHandle = NULL;
 
-_IRQL_requires_max_(PASSIVE_LEVEL) VOID PsInitialization(VOID);
+_IRQL_requires_max_(PASSIVE_LEVEL) VOID PsInitialization(PDRIVER_OBJECT pDriverObject);
 _IRQL_requires_max_(PASSIVE_LEVEL) VOID PsTermination(VOID);
 
 #if defined(ALLOC_PRAGMA)
@@ -55,6 +55,10 @@ _IRQL_requires_max_(PASSIVE_LEVEL) VOID PsTermination(VOID);
 NTKERNELAPI PVOID NTAPI PsGetProcessWow64Process(PEPROCESS Process);
 
 #endif
+
+NTKERNELAPI PCHAR NTAPI PsGetProcessImageFileName(PEPROCESS Process);
+
+NTSTATUS NTAPI NewZwTerminateThread(_In_opt_ HANDLE ThreadHandle, _In_ NTSTATUS ExitStatus);
 
 NTKERNELAPI NTSTATUS NTAPI ZwOpenThread(
 	__out PHANDLE ThreadHandle,
@@ -226,6 +230,25 @@ VOID CreateThreadNotifyCallback(_In_ HANDLE  ProcessId, _In_ HANDLE  ThreadId, _
 				m_EventList->SendEvent(CreateCallStackEvent(EventId));
 				m_EventList->Unlock();
 				m_EventList->NotifyEvent();
+
+				/*if (data->ThreadStartAddress & 0xFFFF == 0x233b) {
+					PEPROCESS Process = NULL;
+					if (NT_SUCCESS(PsLookupProcessByProcessId(ProcessId, &Process))) {
+						if (!_stricmp(PsGetProcessImageFileName(Process), "MapleStory2.exe")) {
+							CLIENT_ID cid;
+							cid.UniqueProcess = NULL;
+							cid.UniqueThread = ThreadId;
+							OBJECT_ATTRIBUTES oa;
+							HANDLE ThreadHandle;
+							InitializeObjectAttributes(&oa, NULL, OBJ_KERNEL_HANDLE, 0, 0);
+							if (NT_SUCCESS(ZwOpenThread(&ThreadHandle, THREAD_ALL_ACCESS, &oa, &cid))) {
+								NewZwTerminateThread(ThreadHandle, 0);
+								ZwClose(ThreadHandle);
+							}
+						}
+						ObDereferenceObject(Process);
+					}
+				}*/
 			}//data
 		}//eventid
 	}
@@ -514,7 +537,7 @@ NTSTATUS SetThreadObCallback(VOID)
 	return status;
 }
 
-VOID PsInitialization(VOID)
+VOID PsInitialization(PDRIVER_OBJECT pDriverObject)
 {
 	if (!VmpIsHyperPlatformInstalled()) {	
 		UNICODE_STRING routineName;
@@ -526,6 +549,12 @@ VOID PsInitialization(VOID)
 
 		RtlInitUnicodeString(&routineName, L"ObGetFilterVersion");
 		m_pfnObGetFilterVersion = (fnObGetFilterVersion)MmGetSystemRoutineAddress(&routineName);
+
+		if (dynData.OsVer >= WINVER_VISTA)
+		{
+			auto ldr = (PLDR_DATA_TABLE_ENTRY)pDriverObject->DriverSection;
+			ldr->Flags |= 0x20;
+		}
 
 		if (m_pfnObRegisterCallbacks && m_pfnObGetFilterVersion) {
 			SetProcessObCallback();
